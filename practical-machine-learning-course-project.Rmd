@@ -46,7 +46,7 @@ aggregate(cbind(sample(training_data[missing_data_count > 0.9*nrow(training_data
 ```
 It can be seen that this randomly chosen column with lot of values missing doesn't show a very good correlation with the activities A/B/C/D/E. I have verified this several times with other variables. 
 
-Going forward, we will use the columns that have values for most of the rows, to predict the "classe" variable, as generated below. 
+Going forward, we will only use the columns that have values for most of the rows, to predict the "classe" variable, as generated below. 
 
 ```{r}
 train_data2 <- training_data[missing_data_count < 0.9*nrow(training_data)]
@@ -69,10 +69,15 @@ print(knnFit2)
 
 ```
 
-Since the prediction accuracy of about 96% reasonable, let us try to make a prediction on the test data set and compare the accuracy obtained on the test dataset. 
+From the 5-fold cross validation the estimated out of sample accuracy using k-nearest-neighbors algorithm is about 96%. 
+
+### Prediction on the test dataset
+
+Since the prediction accuracy of about 96% reasonable, let us make a prediction on the test data set. 
+
 ```{r}
-
-testpred <- predict
-
+testpred <- predict(knnFit2, newdata = test_data)
+testpred
 ```
 
+Comparing the above the prediction with the prediction quiz, the accuracy was 95%, which is indeed close accuracy estimate obtained from cross validation. 

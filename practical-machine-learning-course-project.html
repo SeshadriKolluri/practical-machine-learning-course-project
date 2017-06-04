@@ -151,14 +151,14 @@ ncol(training_data)</code></pre>
 <p>It appears that 100 out of 160 columns are “sparse” in the sense that they have more than 90 percent of values as either blank or NA.</p>
 <p>These columns where more than 90% of the rows are either blank or NA are likely not good predictors of the “classe” variable that we are interested in. In the following code, we randomly choose one of those columns and compare the range of values in that column for each of the activity types (A/B/C/D/E)</p>
 <pre class="r"><code>aggregate(cbind(sample(training_data[missing_data_count &gt; 0.9*nrow(training_data)],1)),FUN = range,  na.rm = TRUE,by = list(training_data$classe))</code></pre>
-<pre><code>##   Group.1 min_pitch_arm.1 min_pitch_arm.2
-## 1       A            -179             152
-## 2       B            -180             115
-## 3       C            -153             113
-## 4       D            -104              94
-## 5       E            -133             114</code></pre>
+<pre><code>##   Group.1 stddev_yaw_belt.1 stddev_yaw_belt.2
+## 1       A               0.0               4.0
+## 2       B               0.0             176.6
+## 3       C               0.0               1.7
+## 4       D               0.0               4.1
+## 5       E               0.0               8.7</code></pre>
 <p>It can be seen that this randomly chosen column with lot of values missing doesn’t show a very good correlation with the activities A/B/C/D/E. I have verified this several times with other variables.</p>
-<p>Going forward, we will use the columns that have values for most of the rows, to predict the “classe” variable, as generated below.</p>
+<p>Going forward, we will only use the columns that have values for most of the rows, to predict the “classe” variable, as generated below.</p>
 <pre class="r"><code>train_data2 &lt;- training_data[missing_data_count &lt; 0.9*nrow(training_data)]</code></pre>
 </div>
 <div id="training-the-model" class="section level3">
@@ -181,18 +181,26 @@ print(knnFit2)</code></pre>
 ## Pre-processing: principal component signal extraction (81), centered
 ##  (81), scaled (81) 
 ## Resampling: Cross-Validated (5 fold) 
-## Summary of sample sizes: 15697, 15696, 15698, 15699, 15698 
+## Summary of sample sizes: 15697, 15698, 15698, 15698, 15697 
 ## Resampling results across tuning parameters:
 ## 
 ##   k  Accuracy   Kappa    
-##   5  0.9756911  0.9692491
-##   7  0.9686074  0.9602825
-##   9  0.9604022  0.9498959
+##   5  0.9772194  0.9711825
+##   7  0.9676383  0.9590578
+##   9  0.9601467  0.9495716
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was k = 5.</code></pre>
-<p>Since the prediction accuracy of about 96% reasonable, let us try to make a prediction on the test data set and compare the accuracy obtained on the test dataset.</p>
-<pre class="r"><code>testpred &lt;- predict</code></pre>
+<p>From the 5-fold cross validation the estimated out of sample accuracy using k-nearest-neighbors algorithm is about 96%.</p>
+</div>
+<div id="prediction-on-the-test-dataset" class="section level3">
+<h3>Prediction on the test dataset</h3>
+<p>Since the prediction accuracy of about 96% reasonable, let us make a prediction on the test data set.</p>
+<pre class="r"><code>testpred &lt;- predict(knnFit2, newdata = test_data)
+testpred</code></pre>
+<pre><code>##  [1] B A A A A E D B A A B C B A E E A B B B
+## Levels: A B C D E</code></pre>
+<p>Comparing the above the prediction with the prediction quiz, the accuracy was 95%, which is indeed close accuracy estimate obtained from cross validation.</p>
 </div>
 
 
