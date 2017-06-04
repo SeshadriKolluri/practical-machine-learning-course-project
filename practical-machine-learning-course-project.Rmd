@@ -1,0 +1,78 @@
+---
+title: "Practical Machine Learning Course Project"
+output: html_document
+---
+ 
+### Download the training and test data
+
+```{r message=FALSE}
+require(plyr)
+require(ggplot2)
+
+#Define a file name
+trainingfile <-"pml-training.csv"
+testingfile <- "pml-testing.csv"
+
+#Check if the file already exists, and download if it doesn't exist already
+if(!file.exists(trainingfile)){
+    download.file(destfile = trainingfile,method='curl',url='https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv')}
+if(!file.exists(testingfile)){
+    download.file(destfile = testingfile,method='curl',url='https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv')}
+
+training_data <- read.csv(trainingfile)
+test_data <- read.csv(testingfile)
+```
+
+### Data cleaning and getting rid of columns with lot of NA or blank values
+
+Take a quick look at the data using the following command. I have hidden the output for simplicity. 
+
+```{r results="hide"}
+head(training_data)
+```
+Examinining the data reveals that there are many columns with lot of 'NA' or blank values. The following code calculates the number of columns where more than 90% of the rows have either 'NA' or blank data ("sparse" columns)
+
+```{r}
+missing_data_count <- apply(training_data,2,function(x) sum(is.na(x)|  x == ""))
+ncol(training_data)
+length(missing_data_count[missing_data_count > 0.9*nrow(training_data)])
+```
+It appears that `r length(missing_data_count[missing_data_count > 0.9*nrow(training_data)])` out of `r ncol(training_data)` columns are "sparse" in the sense that they have more than 90 percent of values as either blank or NA. 
+
+These columns where more than 90% of the rows are either blank or NA are likely not good predictors of the "classe" variable that we are interested in. In the following code, we randomly choose one of those columns and compare the range of values in that column for each of the activity types (A/B/C/D/E)
+
+```{r}
+aggregate(cbind(sample(training_data[missing_data_count > 0.9*nrow(training_data)],1)),FUN = range,  na.rm = TRUE,by = list(training_data$classe))
+```
+It can be seen that this randomly chosen column with lot of values missing doesn't show a very good correlation with the activities A/B/C/D/E. I have verified this several times with other variables. 
+
+Going forward, we will use the columns that have values for most of the rows, to predict the "classe" variable, as generated below. 
+
+```{r}
+train_data2 <- training_data[missing_data_count < 0.9*nrow(training_data)]
+```
+
+### Training the model
+
+We will use k-nearest-neighbor algorithm, with 5-fold cross-validation to train the model, and estimate out of sample prediction accuracy. 
+
+
+```{r message=FALSE}
+# load the library
+require(caret)
+require(rpart)
+
+# train the model
+knnFit2 <- train(classe~., train_data2, method = "knn", preProcess=c("pca"), 
+   trControl = trainControl(method = "cv",number = 5))
+print(knnFit2)
+
+```
+
+Since the prediction accuracy of about 96% reasonable, let us try to make a prediction on the test data set and compare the accuracy obtained on the test dataset. 
+```{r}
+
+testpred <- predict
+
+```
+
